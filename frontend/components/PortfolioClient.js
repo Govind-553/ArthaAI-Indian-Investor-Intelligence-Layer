@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { getPortfolio, summarizePortfolio } from '../lib/api';
 import { EmptyState, ErrorState, LoadingState } from './ResourceStates';
@@ -7,6 +7,7 @@ import { useRealtimeResource } from './useRealtimeResource';
 
 export function PortfolioClient() {
   const { data, lastUpdated, loading, error, reload } = useRealtimeResource(getPortfolio, [], 20000);
+  const holdings = Array.isArray(data) ? data : (data?.holdings || []);
   const summary = summarizePortfolio(data);
 
   if (loading) {
@@ -42,7 +43,7 @@ export function PortfolioClient() {
 
       <article className="rounded-[1.5rem] border border-slate-200 bg-white/80 p-6 shadow-glow">
         <h3 className="text-xl font-semibold text-slate-950">Holdings</h3>
-        {data.length ? (
+        {holdings.length ? (
           <div className="mt-5 overflow-x-auto">
             <table className="min-w-full text-left text-sm text-slate-800">
               <thead className="text-slate-500">
@@ -58,7 +59,7 @@ export function PortfolioClient() {
                 </tr>
               </thead>
               <tbody>
-                {data.map((holding) => (
+                {holdings.map((holding) => (
                   <tr key={holding.symbol} className="border-t border-slate-100">
                     <td className="py-4 font-semibold">{holding.symbol}</td>
                     <td className="py-4">{holding.quantity}</td>

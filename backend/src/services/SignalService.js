@@ -59,23 +59,38 @@ export class SignalService {
   }
 
   async getSignals() {
-    if (!this.alertRepository) {
-      return [];
+    const signals = await this.signalRepository.getSignals();
+    
+    // Fallback to alert repository if needed (though user requested to use DB for signals)
+    if (signals.length === 0 && this.alertRepository) {
+      const alerts = await this.alertRepository.getRecentSignals();
+      return alerts.map((alert) => ({
+        id: alert._id.toString(),
+        stockName: alert.symbol,
+        symbol: alert.symbol,
+        signalType: alert.signalType,
+        confidence: alert.score,
+        riskLevel: riskLevelFromScore(alert.score),
+        sector: inferSector(alert.symbol),
+        timeframe: 'short-term',
+        explanation: alert.reason,
+        status: alert.status,
+        createdAt: alert.createdAt,
+      }));
     }
 
-    const alerts = await this.alertRepository.getRecentSignals();
-    return alerts.map((alert) => ({
-      id: alert._id.toString(),
-      stockName: alert.symbol,
-      symbol: alert.symbol,
-      signalType: alert.signalType,
-      confidence: alert.score,
-      riskLevel: riskLevelFromScore(alert.score),
-      sector: inferSector(alert.symbol),
+    return signals.map((signal) => ({
+      id: signal._id.toString(),
+      stockName: signal.symbol,
+      symbol: signal.symbol,
+      signalType: signal.type,
+      confidence: signal.score,
+      riskLevel: riskLevelFromScore(signal.score),
+      sector: inferSector(signal.symbol),
       timeframe: 'short-term',
-      explanation: alert.reason,
-      status: alert.status,
-      createdAt: alert.createdAt,
+      explanation: signal.explanation,
+      status: 'active',
+      createdAt: signal.createdAt,
     }));
   }
 }

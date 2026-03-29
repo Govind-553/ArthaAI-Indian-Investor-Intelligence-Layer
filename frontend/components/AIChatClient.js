@@ -1,5 +1,6 @@
-﻿'use client';
+'use client';
 
+import { useSearchParams } from 'next/navigation';
 import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import { askMarketQuestion, getPortfolio, summarizePortfolio, toChatPortfolio } from '../lib/api';
 import { ErrorState, LoadingState } from './ResourceStates';
@@ -36,9 +37,19 @@ function createAssistantMessage(payload) {
 }
 
 export function AIChatClient() {
+  const searchParams = useSearchParams();
   const portfolioResource = useRealtimeResource(getPortfolio, [], 20000);
+  const holdings = Array.isArray(portfolioResource.data) ? portfolioResource.data : (portfolioResource.data?.holdings || []);
   const summary = summarizePortfolio(portfolioResource.data);
   const [question, setQuestion] = useState('What is the biggest risk in my portfolio right now?');
+
+  useEffect(() => {
+    const symbol = searchParams.get('symbol');
+    if (symbol) {
+      setQuestion(`What is the analysis for ${symbol}?`);
+    }
+  }, [searchParams]);
+
   const [messages, setMessages] = useState([]);
   const [streamingText, setStreamingText] = useState('');
   const [streamingPayload, setStreamingPayload] = useState(null);
@@ -73,7 +84,7 @@ export function AIChatClient() {
     const prompt = question.trim();
     if (!prompt || loading) return;
 
-    if (!portfolioResource.data.length) {
+    if (!holdings.length) {
       setRequestError('Add portfolio holdings before using AI chat so the answer can use real portfolio context.');
       return;
     }
@@ -156,7 +167,7 @@ export function AIChatClient() {
             <h3 className="mt-3 text-2xl font-semibold text-white">{summary.currentValue}</h3>
             <p className={`mt-2 text-sm ${summary.pnl >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>{summary.pnl} total · {summary.pnlPercentage}%</p>
             <div className="mt-4 space-y-3">
-              {portfolioResource.data.slice(0, 3).map((holding) => (
+              {holdings.slice(0, 3).map((holding) => (
                 <div key={holding.symbol} className="flex items-center justify-between rounded-[1rem] bg-white/5 px-3 py-3 text-sm">
                   <span className="text-slate-200">{holding.symbol}</span>
                   <span className={holding.pnlPercentage >= 0 ? 'text-emerald-300' : 'text-rose-300'}>{holding.pnlPercentage}%</span>

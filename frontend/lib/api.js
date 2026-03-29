@@ -1,4 +1,4 @@
-﻿const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || process.env.BACKEND_API_URL || 'http://localhost:4000/api/v1';
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || process.env.BACKEND_API_URL || 'http://localhost:4000/api/v1';
 export const AUTH_TOKEN_KEY = 'arthaai-auth-token';
 
 export class ApiError extends Error {
@@ -53,32 +53,56 @@ async function parseResponse(response) {
 
 async function request(path, { method = 'GET', body, headers = {}, auth = false } = {}) {
   const token = auth ? getStoredToken() : null;
-  const response = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...headers,
-    },
-    body: body ? JSON.stringify(body) : undefined,
-    cache: 'no-store',
-  });
+  
+  try {
+    const response = await fetch(`${BASE_URL}${path}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...headers,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      cache: 'no-store',
+    });
 
-  const payload = await parseResponse(response);
+    const payload = await parseResponse(response);
 
-  if (!response.ok) {
-    const message = payload?.error?.message || payload?.message || `Request failed with status ${response.status}`;
-    throw new ApiError(message, response.status, payload?.error?.details || null);
+    if (!response.ok) {
+      // Standardized to handle error as string or object for backward compatibility
+      const message = typeof payload?.error === 'string' 
+        ? payload.error 
+        : payload?.error?.message || payload?.message || `Request failed with status ${response.status}`;
+      
+      throw new ApiError(message, response.status, payload?.details || payload?.error?.details || null);
+    }
+
+    return payload;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    
+    // Handle network errors like "Failed to fetch"
+    logger.error('Network request failed', { path, method, error: error.message });
+    throw new ApiError(`Network error: ${error.message}`, 0);
   }
-
-  return payload;
 }
+
+// Add a simple logger for client side if needed, or just console
+const logger = {
+  error: (...args) => console.error('[API]', ...args),
+  info: (...args) => console.info('[API]', ...args),
+};
 
 function unwrap(payload) {
   return payload?.data ?? payload;
 }
 
-export function summarizePortfolio(holdings = []) {
+export function summarizePortfolio(input = []) {
+  // Handle both array input and the full portfolio object returned by getPortfolio
+  const holdings = Array.isArray(input) ? input : (input?.holdings || []);
+
   const totals = holdings.reduce(
     (accumulator, holding) => ({
       investedValue: accumulator.investedValue + Number(holding.investedValue || 0),
@@ -98,7 +122,10 @@ export function summarizePortfolio(holdings = []) {
   };
 }
 
-export function toChatPortfolio(holdings = []) {
+export function toChatPortfolio(input = []) {
+  // Handle both array input and the full portfolio object returned by getPortfolio
+  const holdings = Array.isArray(input) ? input : (input?.holdings || []);
+
   return holdings.map((holding) => ({
     symbol: holding.symbol,
     quantity: holding.quantity,
@@ -130,6 +157,10 @@ export async function getAlerts() {
   return unwrap(await request('/alerts', { auth: true }));
 }
 
+export async function addHolding(payload) {
+  return unwrap(await request('/portfolio/holdings', { method: 'POST', body: payload, auth: true }));
+}
+
 export async function subscribeToAlerts(payload) {
   return unwrap(await request('/alerts/subscribe', { method: 'POST', body: payload, auth: true }));
 }
@@ -146,4 +177,3 @@ export async function askMarketQuestion({ question, portfolio, riskProfile = 'mo
     }),
   );
 }
-

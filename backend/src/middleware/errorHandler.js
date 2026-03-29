@@ -8,11 +8,12 @@ export const errorHandler = (error, _req, res, _next) => {
     details: error.details,
   });
 
-  return res.status(error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+  const statusCode = error.statusCode || HTTP_STATUS.INTERNAL_SERVER_ERROR;
+  const message = error.message || 'Internal server error';
+
+  return res.status(statusCode).json({
     success: false,
-    error: {
-      message: error.message || 'Internal server error',
-      details: error.details || null,
-    },
+    error: message, // Standardized to string
+    ...(process.env.NODE_ENV === 'development' ? { details: error.details || null } : {}),
   });
 };

@@ -94,6 +94,7 @@ export const buildAppContext = ({
     resolvedSignalEngineRepository,
     alertService,
     resolveSignalDetectionQueue(signalDetectionQueue),
+    resolvedSignalRepository,
   );
 
   const healthController = new HealthController();
@@ -105,7 +106,18 @@ export const buildAppContext = ({
   const signalEngineController = new SignalEngineController(signalDetectionService);
   const alertController = new AlertController(alertService);
 
-  app.use(cors({ origin: env.frontendUrl }));
+  // More robust CORS for development
+  const allowedOrigins = [env.frontendUrl, 'http://localhost:3000', 'http://127.0.0.1:3000'];
+  app.use(cors({ 
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true 
+  }));
   app.use(express.json());
   app.use(requestLogger);
   app.locals.userRepository = resolvedUserRepository;
