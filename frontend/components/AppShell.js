@@ -1,6 +1,7 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuth } from './AuthProvider';
@@ -37,7 +38,24 @@ export function AppShell({ children }) {
   }
 
   if (isPublicRoute) {
-    return <div className="min-h-screen">{children}</div>;
+    return (
+      <div className="min-h-screen">
+        <div className="mx-auto max-w-7xl px-4 py-5 md:px-8 md:py-8">
+          <header className="mb-7 rounded-[2rem] border border-white/10 bg-white/5 px-5 py-5 shadow-[0_20px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 p-2 ring-1 ring-white/20">
+                <Image src="/logo.png" alt="ArthaAI Logo" width={32} height={32} />
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.38em] text-emerald-300/80">ArthaAI Fintech OS</p>
+                <h1 className="text-lg font-semibold text-white">Retail investor platform for daily market decisions</h1>
+              </div>
+            </div>
+          </header>
+          {children}
+        </div>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
@@ -50,11 +68,16 @@ export function AppShell({ children }) {
         <header className="mb-7 overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 shadow-[0_20px_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl">
           <div className="bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.16),transparent_30%),radial-gradient(circle_at_top_right,rgba(250,204,21,0.1),transparent_28%)] px-5 py-5 md:px-7 md:py-6">
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.38em] text-emerald-300/80">ArthaAI Fintech OS</p>
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 p-2 ring-1 ring-white/20">
+                  <Image src="/logo.png" alt="ArthaAI Logo" width={32} height={32} />
+                </div>
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.38em] text-emerald-300/80">ArthaAI Fintech OS</p>
                 <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white md:text-4xl">Retail investor platform for daily market decisions</h1>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">Signal-first intelligence for Indian markets, designed to reduce cognitive load and keep action, risk, and context visible at a glance.</p>
               </div>
+            </div>
               <div className="flex flex-col items-end gap-3 rounded-[1.4rem] border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-right">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.26em] text-emerald-200/70">Signed In</p>

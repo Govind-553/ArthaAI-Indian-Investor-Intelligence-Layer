@@ -1,5 +1,6 @@
 ﻿'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -117,10 +118,15 @@ export function AuthForm({ mode }) {
         </section>
 
         <section className="rounded-[2.2rem] border border-white/10 bg-slate-950/55 p-6 shadow-[0_24px_90px_rgba(0,0,0,0.35)] backdrop-blur-2xl md:p-8">
-          <div className="mb-8 flex items-center justify-between gap-4">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">{isRegister ? 'Register' : 'Login'}</p>
-              <h2 className="mt-2 text-2xl font-semibold text-white">{isRegister ? 'Open your account' : 'Welcome back'}</h2>
+          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 p-2 ring-1 ring-white/20">
+                <Image src="/logo.png" alt="ArthaAI Logo" width={36} height={36} />
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">{isRegister ? 'Register' : 'Login'}</p>
+                <h2 className="mt-2 text-2xl font-semibold text-white">{isRegister ? 'Open your account' : 'Welcome back'}</h2>
+              </div>
             </div>
             <div className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">
               Secure JWT session

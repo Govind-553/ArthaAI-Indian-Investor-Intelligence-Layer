@@ -1,4 +1,4 @@
-﻿import './globals.css';
+import './globals.css';
 import { Sora } from 'next/font/google';
 import { AppShell } from '../components/AppShell';
 import { AuthProvider } from '../components/AuthProvider';
@@ -11,6 +11,9 @@ const sora = Sora({
 export const metadata = {
   title: 'ArthaAI Indian Investor Intelligence',
   description: 'Frontend workspace for dashboard, portfolio, alerts, and AI chat.',
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({ children }) {
